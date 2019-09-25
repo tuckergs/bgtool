@@ -4,6 +4,8 @@
 //#include <unistd.h>
 using namespace std;
 
+bool foregroundStuff = false;
+
 bool isLittleEndian()
 //shamelessly pinched from StackOverflow
 {
@@ -117,11 +119,19 @@ int getGameType(ifstream& file){
 }
 
 uint32_t getBGListOffset(ifstream& file, int gametype){
-	if (gametype == 1){
-		return 0x68;
-	} else { //gametype == 2
-		return 0x58;
-	}
+  if (foregroundStuff){
+    if (gametype == 1){
+      return 0x70;
+    } else { //gametype == 2
+      return 0x60;
+    }
+  } else {
+    if (gametype == 1){
+      return 0x68;
+    } else { //gametype == 2
+      return 0x58;
+    }
+  }
 }
 
 uint32_t addToOffsetLength(ifstream& file, uint32_t offset){
@@ -152,7 +162,11 @@ uint32_t getModelNameLength(ifstream& bif, uint32_t modelnameoffset){
 }
 
 void helpText(){
-	cout << "How to use bgtool:" << endl << "\"filename -e\" - extract background files from the file" << endl << "\"filename -r prefix\" - apply the background files with the given prefix to the file";
+	cout << "How to use bgtool:" << endl ;
+  cout << "\"filename -e\" - extract background files from the file" << endl ;
+  cout << "\"filename -r prefix\" - apply the background files with the given prefix to the file";
+  cout << "\"filename -fe\" - extract foreground files from the file" << endl ;
+  cout << "\"filename -fr prefix\" - apply the foreground files with the given prefix to the file";
 }
 
 /*
@@ -679,8 +693,19 @@ int main (int argc, char* argv[]){
 				string filename(argv[1]);
 				successval = fileExtract(filename);
 			}
+			if (operationtype == "-fe") {
+        foregroundStuff = true;
+				string filename(argv[1]);
+				successval = fileExtract(filename);
+			}
 		} else if (argc == 4) {
 			if (operationtype == "-r") {
+				string sourcefilename(argv[1]);
+				string bgfileprefix(argv[3]);
+				successval = fileReconstruct(sourcefilename, bgfileprefix);
+			}
+			if (operationtype == "-fr") {
+        foregroundStuff = true;
 				string sourcefilename(argv[1]);
 				string bgfileprefix(argv[3]);
 				successval = fileReconstruct(sourcefilename, bgfileprefix);
